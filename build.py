@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Package src/ into build/roku_streambar.c4z (unencrypted dev build)."""
-import pathlib, zipfile
+"""Package src/ into build/roku_streambar.c4z (unencrypted dev build) and copy it to release/."""
+import pathlib, shutil, zipfile
 
 root = pathlib.Path(__file__).resolve().parent
 src = root / "src"
@@ -12,3 +12,9 @@ with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
         if f.is_file():
             z.write(f, f.relative_to(src).as_posix())
 print(f"wrote {out}")
+
+# tracked copy for the repo
+rel = root / "release" / out.name
+rel.parent.mkdir(exist_ok=True)
+shutil.copy2(out, rel)
+print(f"copied to {rel}")

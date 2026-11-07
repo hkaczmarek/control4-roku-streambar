@@ -8,7 +8,7 @@ Control4 receiver-proxy driver for the Roku Streambar over Roku ECP (HTTP POST, 
 - IP address as a property; "Test Connection" reads `query/device-info`
 
 ## Build
-    python build.py      # -> build/roku_streambar.c4z
+    python build.py      # -> build/roku_streambar.c4z, copied to release/ (tracked)
 
 ## Properties
 | Property | Default | Notes |
