@@ -21,13 +21,18 @@ Internally the Roku and the app switcher feed the receiver through hidden auto-b
 ## Properties
 | Property | Default | Notes |
 |---|---|---|
-| IP Address | — | Streambar IP (DHCP reservation on the active MAC) |
+| Roku Player | — | Read-only: the selected Roku, its serial and current IP |
+| Roku Player Selector | — | Rokus found via SSDP (`roku:ecp`); pick one. Remembered by serial, so IP changes are followed. A single Streambar on the network is selected automatically |
+| Roku IP | — | Optional static IP; overrides discovery |
+| Polling Time | 15 s | How often Current App is refreshed |
+| On Power On / On Power Off | Home / Home | Send Home after waking / before standby (closes the running app) |
+| Passthrough Mode | Off | Off: after an app mini-driver launches its app, the room switches to the Roku source. On: the mini-driver stays selected and forwards keys |
 | Ramp Interval (ms) | 150 | Time between repeated volume keypresses while held |
 | Max Ramp Time (s) | 10 | Safety stop if a STOP never arrives |
-| MENU / GUIDE / INFO / CANCEL / RECALL Button | Home / Home / Info / Back / InstantReplay | Roku key each Control4 button sends |
+| MENU / GUIDE / INFO / CANCEL / RECALL / PVR / STAR / POUND Button | Home / Home / Info / Back / InstantReplay / Back / Do Nothing / Do Nothing | Roku key each Control4 button sends |
 | Debug Mode | Off | Prints to Lua output |
 
-Actions: Test Connection, Send Volume Up/Down, Send Home, Print Installed Apps (Roku app IDs).
+Actions: Test Connection, Send Volume Up/Down, Send Home, Print Installed Apps (Roku app IDs), Rescan for Rokus.
 
 ## Build / test
     python build.py                          # -> build/roku_streambar_combined.c4z, copied to release/ (tracked)
@@ -44,4 +49,3 @@ Actions: Test Connection, Send Volume Up/Down, Send Home, Print Installed Apps (
 ## Not yet
 - Navigator app browsing (media_service), now-playing metadata
 - Discrete mute and volume feedback (ECP has no volume/mute state)
-- SSDP discovery by serial number

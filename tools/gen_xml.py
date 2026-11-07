@@ -63,7 +63,13 @@ props = "\n".join([
     prop("Connection Status", "STRING", "Not configured", readonly=True),
     prop("Device", "STRING", readonly=True),
     prop("Current App", "STRING", readonly=True),
-    prop("IP Address", "STRING"),
+    prop("Roku Player", "STRING", "None selected", readonly=True),
+    prop("Roku Player Selector", "DYNAMIC_LIST"),
+    prop("Roku IP", "STRING"),
+    prop("Polling Time", "RANGED_INTEGER", 15, mn=3, mx=30),
+    prop("On Power On", "LIST", "Home", items=["Do Nothing", "Home"]),
+    prop("On Power Off", "LIST", "Home", items=["Do Nothing", "Home"]),
+    prop("Passthrough Mode", "LIST", "Off", items=["Off", "On"]),
     prop("Ramp Interval (ms)", "RANGED_INTEGER", 150, mn=80, mx=1000),
     prop("Max Ramp Time (s)", "RANGED_INTEGER", 10, mn=2, mx=30),
     prop("MENU Button", "LIST", "Home", items=KEYS),
@@ -71,6 +77,9 @@ props = "\n".join([
     prop("INFO Button", "LIST", "Info", items=KEYS),
     prop("CANCEL Button", "LIST", "Back", items=KEYS),
     prop("RECALL Button", "LIST", "InstantReplay", items=KEYS),
+    prop("PVR Button", "LIST", "Back", items=KEYS),
+    prop("STAR Button", "LIST", "Do Nothing", items=KEYS),
+    prop("POUND Button", "LIST", "Do Nothing", items=KEYS),
     prop("Debug Mode", "LIST", "Off", items=["Off", "On"]),
 ])
 
@@ -82,7 +91,7 @@ xml = f"""<devicedata>
   <model>Streambar (ECP)</model>
   <created>11/07/2026 12:00 PM</created>
   <modified>11/07/2026 12:00 PM</modified>
-  <version>22</version>
+  <version>30</version>
   <control>lua_gen</control>
   <controlmethod>ip</controlmethod>
   <driver>DriverWorks</driver>
@@ -133,6 +142,7 @@ xml = f"""<devicedata>
       <action><name>Send Volume Down</name><command>TestVolDown</command></action>
       <action><name>Send Home</name><command>TestHome</command></action>
       <action><name>Print Installed Apps</name><command>PrintApps</command></action>
+      <action><name>Rescan for Rokus</name><command>Rescan</command></action>
     </actions>
   </config>
 </devicedata>

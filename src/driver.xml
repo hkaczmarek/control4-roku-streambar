@@ -6,7 +6,7 @@
   <model>Streambar (ECP)</model>
   <created>11/07/2026 12:00 PM</created>
   <modified>11/07/2026 12:00 PM</modified>
-  <version>22</version>
+  <version>30</version>
   <control>lua_gen</control>
   <controlmethod>ip</controlmethod>
   <driver>DriverWorks</driver>
@@ -618,10 +618,60 @@
         <default></default>
       </property>
       <property>
-        <name>IP Address</name>
+        <name>Roku Player</name>
+        <type>STRING</type>
+        <readonly>true</readonly>
+        <default>None selected</default>
+      </property>
+      <property>
+        <name>Roku Player Selector</name>
+        <type>DYNAMIC_LIST</type>
+        <readonly>false</readonly>
+        <default></default>
+      </property>
+      <property>
+        <name>Roku IP</name>
         <type>STRING</type>
         <readonly>false</readonly>
         <default></default>
+      </property>
+      <property>
+        <name>Polling Time</name>
+        <type>RANGED_INTEGER</type>
+        <readonly>false</readonly>
+        <minimum>3</minimum>
+        <maximum>30</maximum>
+        <default>15</default>
+      </property>
+      <property>
+        <name>On Power On</name>
+        <type>LIST</type>
+        <readonly>false</readonly>
+        <items>
+          <item>Do Nothing</item>
+          <item>Home</item>
+        </items>
+        <default>Home</default>
+      </property>
+      <property>
+        <name>On Power Off</name>
+        <type>LIST</type>
+        <readonly>false</readonly>
+        <items>
+          <item>Do Nothing</item>
+          <item>Home</item>
+        </items>
+        <default>Home</default>
+      </property>
+      <property>
+        <name>Passthrough Mode</name>
+        <type>LIST</type>
+        <readonly>false</readonly>
+        <items>
+          <item>Off</item>
+          <item>On</item>
+        </items>
+        <default>Off</default>
       </property>
       <property>
         <name>Ramp Interval (ms)</name>
@@ -705,6 +755,45 @@
         <default>InstantReplay</default>
       </property>
       <property>
+        <name>PVR Button</name>
+        <type>LIST</type>
+        <readonly>false</readonly>
+        <items>
+          <item>Home</item>
+          <item>Back</item>
+          <item>Info</item>
+          <item>InstantReplay</item>
+          <item>Do Nothing</item>
+        </items>
+        <default>Back</default>
+      </property>
+      <property>
+        <name>STAR Button</name>
+        <type>LIST</type>
+        <readonly>false</readonly>
+        <items>
+          <item>Home</item>
+          <item>Back</item>
+          <item>Info</item>
+          <item>InstantReplay</item>
+          <item>Do Nothing</item>
+        </items>
+        <default>Do Nothing</default>
+      </property>
+      <property>
+        <name>POUND Button</name>
+        <type>LIST</type>
+        <readonly>false</readonly>
+        <items>
+          <item>Home</item>
+          <item>Back</item>
+          <item>Info</item>
+          <item>InstantReplay</item>
+          <item>Do Nothing</item>
+        </items>
+        <default>Do Nothing</default>
+      </property>
+      <property>
         <name>Debug Mode</name>
         <type>LIST</type>
         <readonly>false</readonly>
@@ -721,6 +810,7 @@
       <action><name>Send Volume Down</name><command>TestVolDown</command></action>
       <action><name>Send Home</name><command>TestHome</command></action>
       <action><name>Print Installed Apps</name><command>PrintApps</command></action>
+      <action><name>Rescan for Rokus</name><command>Rescan</command></action>
     </actions>
   </config>
 </devicedata>

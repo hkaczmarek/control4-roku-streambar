@@ -17,7 +17,7 @@
   repeats keypress/VolumeUp|VolumeDown.
 ]]
 
-DRIVER_VERSION = "0.2.2"
+DRIVER_VERSION = "0.3.0"
 
 local RX = 5001  -- receiver proxy
 local MP = 5002  -- media_player proxy
@@ -34,7 +34,8 @@ local gLastPostFailed = false
 local gAppTimer = nil
 local gLastPowerOn = nil    -- tick of the last successful PowerOn
 local HOME_APP_ID = "562859" -- "Roku Dynamic Menu" = the Roku home screen
-local refreshDeviceInfo -- forward declaration
+local refreshDeviceInfo -- forward declarations
+local sendSearch
 
 ---------------------------------------------------------------------------
 -- Logging / helpers
@@ -59,9 +60,36 @@ end
 ---------------------------------------------------------------------------
 -- ECP transport
 ---------------------------------------------------------------------------
-local function baseUrl()
-  local ip = Properties["IP Address"]
+---------------------------------------------------------------------------
+-- Discovery (SSDP, search target roku:ecp)
+--   Rokus answer an M-SEARCH with LOCATION http://<ip>:8060/ and
+--   USN uuid:roku:ecp:<serial>. The chosen Roku is remembered by serial, so the
+--   driver follows it if its IP changes (e.g. Ethernet adapter <-> Wi-Fi).
+---------------------------------------------------------------------------
+local SSDP_BINDING = 6100
+local SSDP_ADDR = "239.255.255.250"
+local SSDP_RESCAN_MS = 5 * 60 * 1000
+
+PersistData = PersistData or {}
+local gFound = {}          -- serial -> { ip = , name = , model = }
+local gDiscoveredIP = nil  -- current IP of the selected serial
+local gScanTimer = nil
+local gPollTimer = nil
+local gRoomSource = {}     -- roomId -> current source device id (room variable 1000)
+
+local function staticIP()
+  local ip = Properties["Roku IP"]
   if ip == nil or ip == "" then return nil end
+  return ip
+end
+
+local function currentIP()
+  return staticIP() or gDiscoveredIP
+end
+
+local function baseUrl()
+  local ip = currentIP()
+  if not ip then return nil end
   return "http://" .. ip .. ":8060"
 end
 
@@ -69,7 +97,7 @@ end
 local function ecpPost(path, cb)
   local base = baseUrl()
   if not base then
-    setStatus("Not configured (set IP Address)")
+    setStatus("No Roku selected (pick one in Roku Player Selector, or set Roku IP)")
     if cb then cb(false, 0) end
     return
   end
@@ -96,6 +124,7 @@ local function ecpPost(path, cb)
           setStatus("Refused (HTTP " .. code .. ") - on the Roku set Control by mobile apps = Enabled")
         elseif errCode ~= 0 then
           setStatus("Offline (" .. tostring(errMsg) .. ")")
+          if not staticIP() then sendSearch() end -- maybe the IP changed
         else
           setStatus("Error: HTTP " .. code)
         end
@@ -108,7 +137,7 @@ end
 local function ecpGet(path, cb)
   local base = baseUrl()
   if not base then
-    setStatus("Not configured (set IP Address)")
+    setStatus("No Roku selected (pick one in Roku Player Selector, or set Roku IP)")
     if cb then cb(false, nil) end
     return
   end
@@ -131,6 +160,127 @@ end
 local function sendKey(key)
   gInFlight = true
   ecpPost("keypress/" .. key, function() gInFlight = false end)
+end
+
+---------------------------------------------------------------------------
+-- Discovery functions
+---------------------------------------------------------------------------
+local function listLabel(serial, d)
+  local name = (d.name and d.name ~= "") and d.name or (d.model or "Roku")
+  return (name .. " [" .. serial .. "]"):gsub(",", " ") -- the list is comma-separated
+end
+
+local function updateSelectorList()
+  local labels = {}
+  for serial, d in pairs(gFound) do labels[#labels + 1] = listLabel(serial, d) end
+  table.sort(labels)
+  C4:UpdatePropertyList("Roku Player Selector", table.concat(labels, ","))
+end
+
+local function showSelected()
+  if staticIP() then
+    C4:UpdateProperty("Roku Player", "Selected by Roku IP (" .. staticIP() .. ")")
+    return
+  end
+  local serial = PersistData.selectedSerial
+  if not serial then
+    C4:UpdateProperty("Roku Player", "None selected")
+    return
+  end
+  local d = gFound[serial]
+  if d then
+    C4:UpdateProperty("Roku Player", listLabel(serial, d) .. " at " .. d.ip)
+  else
+    C4:UpdateProperty("Roku Player", "[" .. serial .. "] - searching...")
+  end
+end
+
+local function selectSerial(serial)
+  PersistData.selectedSerial = serial
+  local d = gFound[serial]
+  gDiscoveredIP = d and d.ip or nil
+  showSelected()
+  if not staticIP() and gDiscoveredIP then refreshDeviceInfo() end
+end
+
+-- Fetch name/model for a newly seen Roku
+local function describe(serial, ip)
+  C4:url()
+    :SetOptions({ timeout = 3, connect_timeout = 2, fail_on_error = false })
+    :OnDone(function(transfer, responses, errCode)
+      local r = responses and responses[#responses]
+      local d = gFound[serial]
+      if not d then return end
+      if errCode == 0 and r and r.code == 200 and r.body then
+        d.name  = xmlTag(r.body, "user-device-name") or xmlTag(r.body, "friendly-device-name") or d.name
+        d.model = xmlTag(r.body, "model-name") or d.model
+      end
+      updateSelectorList()
+      -- First run: if nothing is selected and exactly one Streambar answers, take it
+      if not PersistData.selectedSerial then
+        local only, count = nil, 0
+        for s, x in pairs(gFound) do
+          if (x.model or ""):find("Streambar") then only, count = s, count + 1 end
+        end
+        if count == 1 then dbg("auto-selected Streambar " .. only); selectSerial(only) end
+      end
+      showSelected()
+    end)
+    :Get("http://" .. ip .. ":8060/query/device-info", {})
+end
+
+local function onSsdpResponse(data)
+  if not data:find("roku:ecp", 1, true) then return end
+  local ip = data:match("[Ll][Oo][Cc][Aa][Tt][Ii][Oo][Nn]:%s*http://([%d%.]+):8060")
+  local serial = data:match("[Uu][Ss][Nn]:%s*uuid:roku:ecp:([%w%-]+)")
+  if not ip or not serial then return end
+
+  local d = gFound[serial]
+  local isNew = (d == nil)
+  if isNew then
+    d = {}
+    gFound[serial] = d
+  end
+  local moved = d.ip and d.ip ~= ip
+  d.ip = ip
+  if isNew or moved then
+    dbg("SSDP: Roku " .. serial .. " at " .. ip .. (moved and " (IP changed)" or ""))
+    describe(serial, ip)
+  end
+  if serial == PersistData.selectedSerial and gDiscoveredIP ~= ip then
+    gDiscoveredIP = ip
+    showSelected()
+    if not staticIP() then refreshDeviceInfo() end
+  end
+end
+
+sendSearch = function()
+  local msg = table.concat({
+    "M-SEARCH * HTTP/1.1",
+    "HOST: 239.255.255.250:1900",
+    'MAN: "ssdp:discover"',
+    "MX: 3",
+    "ST: roku:ecp",
+    "", "",
+  }, "\r\n")
+  dbg("SSDP: M-SEARCH roku:ecp")
+  C4:SendToNetwork(SSDP_BINDING, 1900, msg)
+end
+
+local function startDiscovery()
+  C4:NetDisconnect(SSDP_BINDING, 1900)
+  C4:CreateNetworkConnection(SSDP_BINDING, SSDP_ADDR)
+  C4:NetConnect(SSDP_BINDING, 1900, "UDP")
+  if gScanTimer then gScanTimer:Cancel() end
+  gScanTimer = C4:SetTimer(SSDP_RESCAN_MS, function() sendSearch() end, true)
+end
+
+function OnConnectionStatusChanged(idBinding, nPort, strStatus)
+  if idBinding == SSDP_BINDING and strStatus == "ONLINE" then sendSearch() end
+end
+
+function ReceivedFromNetwork(idBinding, nPort, strData)
+  if idBinding == SSDP_BINDING and strData then onSsdpResponse(strData) end
 end
 
 ---------------------------------------------------------------------------
@@ -164,6 +314,14 @@ local function refreshCurrentApp()
     end
     C4:UpdateProperty("Current App", label)
   end)
+end
+
+local function startPolling()
+  if gPollTimer then gPollTimer:Cancel() end
+  local secs = tonumber(Properties["Polling Time"]) or 15
+  gPollTimer = C4:SetTimer(secs * 1000, function()
+    if currentIP() then refreshCurrentApp() end
+  end, true)
 end
 
 local function printApps()
@@ -221,12 +379,25 @@ local RX_CMDS = {
     local now = C4:GetTickCount()
     if gLastPowerOn and (now - gLastPowerOn) < 3000 then dbg("PowerOn skipped (sent <3 s ago)") return end
     gLastPowerOn = now
-    ecpPost("keypress/PowerOn", function(ok) if not ok then gLastPowerOn = nil end end)
+    ecpPost("keypress/PowerOn", function(ok)
+      if not ok then gLastPowerOn = nil return end
+      -- On Power On = Home: give the Roku a moment to wake, then go home
+      if Properties["On Power On"] == "Home" then
+        C4:SetTimer(2000, function() ecpPost("keypress/Home") end)
+      end
+    end)
   end,
   OFF = function()
     stopRamp("power off")
     gLastPowerOn = nil
-    ecpPost("keypress/PowerOff")
+    if Properties["On Power Off"] == "Home" then
+      -- close the running app first, then standby
+      ecpPost("keypress/Home", function()
+        C4:SetTimer(500, function() ecpPost("keypress/PowerOff") end)
+      end)
+    else
+      ecpPost("keypress/PowerOff")
+    end
   end,
 
   PULSE_VOL_UP   = function() sendKey("VolumeUp") end,
@@ -286,6 +457,7 @@ for i = 0, 9 do NAV["NUMBER_" .. i] = "keypress/Lit_" .. i end
 local NAV_PROP = {
   MENU = "MENU Button", GUIDE = "GUIDE Button", INFO = "INFO Button",
   CANCEL = "CANCEL Button", RECALL = "RECALL Button",
+  PVR = "PVR Button", STAR = "STAR Button", POUND = "POUND Button",
 }
 
 -- commands the room sends that need no action (END_* handled generically below)
@@ -328,11 +500,40 @@ local function miniDriverAppId(input)
   local vars = C4:GetDeviceVariables(miniDeviceId) or {}
   local fallback, name
   for _, v in pairs(vars) do
-    if v.name == MINI_APP_VAR then return v.value, name end
+    if v.name == MINI_APP_VAR then return v.value, name, miniProxyId end
     if v.name == "APP_ID" then fallback = v.value end
     if v.name == "APP_NAME" then name = v.value end
   end
-  return fallback, name
+  return fallback, name, miniProxyId
+end
+
+-- Passthrough Mode = Off: once the app is launched, rooms that have the app's
+-- mini-driver selected are switched to the Roku media player, so remote keys go
+-- straight to the Roku proxy instead of through the mini-driver.
+local function handBackToRoku(miniProxyId)
+  if Properties["Passthrough Mode"] == "On" then return end
+  local mpId = next(C4:GetBoundConsumerDevices(C4:GetDeviceID(), MP) or {})
+  if not mpId or not miniProxyId then return end
+  C4:SetTimer(500, function()
+    for roomId, srcId in pairs(gRoomSource) do
+      if srcId == miniProxyId then
+        dbg("passthrough off: room " .. roomId .. " -> Roku media player")
+        C4:SendToDevice(roomId, "SELECT_VIDEO_DEVICE", { deviceid = mpId })
+      end
+    end
+  end)
+end
+
+local function watchRooms()
+  for roomId, _ in pairs(C4:GetDevicesByC4iName("roomdevice.c4i") or {}) do
+    gRoomSource[roomId] = tonumber(C4:GetDeviceVariable(roomId, 1000)) or 0
+    C4:UnregisterVariableListener(roomId, 1000)
+    C4:RegisterVariableListener(roomId, 1000)
+  end
+end
+
+function OnWatchedVariableChanged(idDevice, idVariable, strValue)
+  if idVariable == 1000 then gRoomSource[tonumber(idDevice)] = tonumber(strValue) or 0 end
 end
 
 local function launchApp(appId, label)
@@ -350,9 +551,10 @@ local function handleSwitch(cmd, p)
   if cmd == "SET_INPUT" then
     local input = tonumber(p and p.INPUT)
     if input and input >= MINI_FIRST and input <= MINI_LAST then
-      local appId, name = miniDriverAppId(input)
+      local appId, name, miniProxyId = miniDriverAppId(input)
       if appId then
         launchApp(appId, name)
+        handBackToRoku(miniProxyId)
       else
         dbg("no Roku app ID on the mini-driver at input " .. input)
       end
@@ -423,6 +625,7 @@ local ACTIONS = {
   TestVolDown    = function() sendKey("VolumeDown") end,
   TestHome       = function() handleNav("HOME") end,
   PrintApps      = printApps,
+  Rescan         = function() sendSearch() end,
 }
 
 function ExecuteCommand(strCommand, tParams)
@@ -437,9 +640,14 @@ function OnPropertyChanged(strProperty)
   local v = Properties[strProperty]
   if strProperty == "Debug Mode" then
     gDebug = (v == "On")
-  elseif strProperty == "IP Address" then
-    refreshDeviceInfo()
-    refreshCurrentApp()
+  elseif strProperty == "Polling Time" then
+    startPolling()
+  elseif strProperty == "Roku IP" then
+    showSelected()
+    if currentIP() then refreshDeviceInfo(); refreshCurrentApp() end
+  elseif strProperty == "Roku Player Selector" then
+    local serial = v and v:match("%[([%w%-]+)%]$")
+    if serial then selectSerial(serial); refreshCurrentApp() end
   end
 end
 
@@ -447,11 +655,17 @@ function OnDriverLateInit()
   C4:UpdateProperty("Driver Version", DRIVER_VERSION)
   gDebug = (Properties["Debug Mode"] == "On")
   hideSwitcher()
-  refreshDeviceInfo()
-  refreshCurrentApp()
+  watchRooms()
+  showSelected()
+  startDiscovery()
+  startPolling()
+  if currentIP() then refreshDeviceInfo(); refreshCurrentApp() end
 end
 
 function OnDriverDestroyed()
   stopRamp("driver destroyed")
   if gAppTimer then gAppTimer:Cancel() end
+  if gScanTimer then gScanTimer:Cancel() end
+  if gPollTimer then gPollTimer:Cancel() end
+  C4:NetDisconnect(SSDP_BINDING, 1900)
 end
