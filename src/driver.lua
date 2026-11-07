@@ -7,7 +7,7 @@
   repeating timer that sends keypress/VolumeUp|VolumeDown.
 ]]
 
-DRIVER_VERSION = "0.1.6"
+DRIVER_VERSION = "0.1.7"
 
 local PROXY_BINDING = 5001
 
@@ -15,6 +15,8 @@ local gDebug = false
 local gRampTimer = nil
 local gRampKey = nil
 local gInFlight = false
+local gLastPostFailed = false
+local refreshDeviceInfo -- forward declaration
 
 ---------------------------------------------------------------------------
 -- Logging
@@ -54,9 +56,22 @@ local function ecpPost(path, cb)
       local ok = (errCode == 0) and code == 200
       if ok then
         dbg("OK " .. path)
+        if gLastPostFailed then
+          gLastPostFailed = false
+          refreshDeviceInfo()
+        end
       else
+        gLastPostFailed = true
         dbg("FAIL " .. path .. " code=" .. tostring(code) .. " err=" .. tostring(errCode) .. " " .. tostring(errMsg))
-        setStatus("Error: " .. tostring(errMsg or ("HTTP " .. code)))
+        if code == 401 or code == 403 then
+          -- Roku OS 14.1+: keypress needs Settings > System > Advanced system settings >
+          -- Control by mobile apps = Enabled
+          setStatus("Refused (HTTP " .. code .. ") - on the Roku set Control by mobile apps = Enabled")
+        elseif errCode ~= 0 then
+          setStatus("Offline (" .. tostring(errMsg) .. ")")
+        else
+          setStatus("Error: HTTP " .. code)
+        end
       end
       if cb then cb(ok, code, errMsg) end
     end)
@@ -100,7 +115,7 @@ local function xmlTag(body, tag)
   return body and body:match("<" .. t .. ">([^<]*)</" .. t .. ">")
 end
 
-local function refreshDeviceInfo()
+refreshDeviceInfo = function()
   ecpGet("query/device-info", function(ok, body, err)
     if not ok then
       setStatus("Offline (" .. tostring(err or "no response") .. ")")
@@ -112,6 +127,9 @@ local function refreshDeviceInfo()
     local power = xmlTag(body, "power-mode") or "?"
     local label = (name ~= "" and name ~= model) and (name .. " " .. model) or model
     C4:UpdateProperty("Device", string.format("%s (OS %s)", label, sw))
+    local tvPower = xmlTag(body, "supports-tv-power-control") or "n/a"
+    local volCtl  = xmlTag(body, "supports-audio-volume-control") or "n/a"
+    C4:UpdateProperty("Roku Capabilities", "TV power control: " .. tvPower .. ", volume control: " .. volCtl)
     setStatus("Online - power-mode " .. power)
   end)
 end

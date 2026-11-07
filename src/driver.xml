@@ -6,7 +6,7 @@
   <model>Streambar (ECP)</model>
   <created>11/07/2026 12:00 PM</created>
   <modified>11/07/2026 12:00 PM</modified>
-  <version>7</version>
+  <version>8</version>
   <control>lua_gen</control>
   <controlmethod>ip</controlmethod>
   <driver>DriverWorks</driver>
@@ -117,6 +117,12 @@
       </property>
       <property>
         <name>Device</name>
+        <type>STRING</type>
+        <readonly>true</readonly>
+        <default></default>
+      </property>
+      <property>
+        <name>Roku Capabilities</name>
         <type>STRING</type>
         <readonly>true</readonly>
         <default></default>
