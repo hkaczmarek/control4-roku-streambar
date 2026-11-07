@@ -7,7 +7,7 @@
   repeating timer that sends keypress/VolumeUp|VolumeDown.
 ]]
 
-DRIVER_VERSION = "0.1.1"
+DRIVER_VERSION = "0.1.2"
 
 local PROXY_BINDING = 5001
 
@@ -110,7 +110,8 @@ local function refreshDeviceInfo()
     local name  = xmlTag(body, "friendly-device-name") or xmlTag(body, "user-device-name") or ""
     local sw    = xmlTag(body, "software-version") or "?"
     local power = xmlTag(body, "power-mode") or "?"
-    C4:UpdateProperty("Device", string.format("%s %s (OS %s)", name, model, sw))
+    local label = (name ~= "" and name ~= model) and (name .. " " .. model) or model
+    C4:UpdateProperty("Device", string.format("%s (OS %s)", label, sw))
     setStatus("Online - power-mode " .. power)
   end)
 end
