@@ -13,6 +13,15 @@ isn't a volume device, and its held-volume ramp uses `keydown`/`keyup`, which th
 Streambar ignores, so holding volume did nothing.
 See [docs/PRIOR-ART.md](docs/PRIOR-ART.md).
 
+## Supported models
+| Model | Status |
+|---|---|
+| Roku Streambar **9102R** | Tested (Roku OS 15.3.4, USB Ethernet adapter) |
+| Roku Streambar **SE 9104R** (current model) | Expected to work, **untested**. Same design: Roku OS, HDMI ARC, optical in, USB Ethernet adapter. To confirm on a unit: Test Connection, PowerOn/PowerOff, held volume (ramp), held arrows |
+
+Auto-selection picks a Roku whose `model-name` contains "Streambar", which should
+also match the SE.
+
 ## What it does
 - **One driver, three proxies**: *Roku Streambar* (receiver: power, volume, mute,
   room audio end-point, HDMI out to the TV), *Roku* (media player: the source,

@@ -21,5 +21,16 @@ Question: did Control4 / Snap One ever ship a Streambar-specific driver?
   Drivers "Roku Universal" ramps held volume with a 150 ms repeat — the same
   approach used here.
 
+## Market note
+Roku still sells the hardware: the **Roku Streambar SE (model 9104R)** is listed on
+roku.com (https://www.roku.com/products/players/roku-streambar-se) as a 2-in-1
+soundbar with built-in Roku 4K HDR streaming, HDMI 2.0a with ARC, one optical
+input, and no built-in Ethernet (USB adaptor required). This driver is expected
+to work with it but is untested on an SE.
+
+Before selling this driver: Roku's ECP documentation states that ECP commands may
+not be sent from third-party platforms (e.g. mobile applications). Control4's own
+Roku driver uses ECP regardless; review before charging for the driver.
+
 Not checked: Control4's dealer driver database (requires a dealer login). To be
 sure, search Composer's online driver search for "Streambar" and "Roku".

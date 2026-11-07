@@ -4,6 +4,10 @@ Device: Roku Streambar, model 9102R, Roku OS 15.3.4, serial YL000J474928,
 on a USB Ethernet adapter. Reference: Roku's External Control Protocol docs
 (https://developer.roku.com/dev/docs/external-control-api).
 
+Other model: Roku Streambar SE (9104R) — not yet tested. Points to verify on an SE:
+`model-name`, `PowerOn`, whether `keydown/Volume*` is also ignored, `keydown`
+arrows, `network-type` with the USB Ethernet adaptor.
+
 ## Transport
 - HTTP on port 8060, no authentication. Commands are `POST` with an empty body;
   queries are `GET`.
