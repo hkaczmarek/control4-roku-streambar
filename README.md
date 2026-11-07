@@ -30,7 +30,7 @@ Internally the Roku and the app switcher feed the receiver through hidden auto-b
 Actions: Test Connection, Send Volume Up/Down, Send Home, Print Installed Apps (Roku app IDs).
 
 ## Build / test
-    python build.py                          # -> build/roku_streambar.c4z, copied to release/ (tracked)
+    python build.py                          # -> build/roku_streambar_combined.c4z, copied to release/ (tracked)
     python tools/gen_xml.py src/driver.xml   # regenerate driver.xml (connections/properties)
     python tools/mock_test.py                # runs driver.lua against a mocked C4 API (pip install lupa)
 
