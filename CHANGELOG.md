@@ -4,7 +4,7 @@ All versions were built and bench-tested on 2026-11-07 against a Roku Streambar
 (model 9102R, Roku OS 15.3.4, serial YL000J474928) in Helmut Bedroom, controlled
 from an SR-150 remote. Driver XML `<version>` is shown in brackets.
 
-## v0.3.0 [30] — discovery and the stock driver's remaining properties
+## v0.3.0 [30] (commit 858e20a) — discovery and the stock driver's remaining properties
 - **Roku Player / Roku Player Selector / Roku IP** (behavior modeled on the stock
   Roku driver's properties, own code):
   - SSDP M-SEARCH for `roku:ecp` on 239.255.255.250:1900 (UDP binding 6100) at
@@ -26,14 +26,14 @@ from an SR-150 remote. Driver XML `<version>` is shown in brackets.
 - Verified on the controller: SSDP found the Streambar plus two Roku Ultras
   (`X02800XWL799`, `X0100006SX8C`) and auto-selected the Streambar.
 
-## v0.2.2 [22] — held arrows back to keydown/keyup
+## v0.2.2 [22] (commit f954355) — held arrows back to keydown/keyup
 - v0.2.1's timer-based arrow repeat was based on a wrong reading of a log that only
   contained taps. The SR-150 *does* send `START_<dir>`/`STOP_<dir>` when an arrow is
   held, and the Streambar *does* honor `keydown`/`keyup` for navigation, so the
   native Roku repeat is used again (as in v0.2.0).
 - Kept from v0.2.1: PowerOn debounce, quiet no-ops, Home label.
 
-## v0.2.1 [21] — (superseded by v0.2.2)
+## v0.2.1 [21] (commit cd43afa) — (superseded by v0.2.2)
 - Timer-based arrow repeat (removed in v0.2.2).
 - PowerOn debounce: the room sends `ON` once per path (video and audio) and again on
   WATCH_BUTTON, producing up to 4 PowerOn posts; repeats within 3 s are skipped.
@@ -41,7 +41,7 @@ from an SR-150 remote. Driver XML `<version>` is shown in brackets.
 - Current App shows **Home** for the Roku home screen (app id 562859,
   "Roku Dynamic Menu").
 
-## v0.2.0 [20] — combined driver
+## v0.2.0 [20] (commit 4ee5242) — combined driver
 - One driver with three proxies: `receiver` (Streambar), `media_player` (Roku UI),
   `avswitch` (hidden app switcher with App 1–25 `RF_MINI_APP` inputs for universal
   app mini-drivers). Internal routing via hidden auto-bound connections.
@@ -55,9 +55,9 @@ from an SR-150 remote. Driver XML `<version>` is shown in brackets.
   Composer does not treat it as an update of the receiver-only driver — see
   docs/INSTALL.md).
 
-## v0.1.8 [9] — receiver-only driver, final
+## v0.1.8 [9] (commit 3268f78) — receiver-only driver, final
 Last version of the single-proxy receiver driver that ran alongside the stock Roku
-driver. Recoverable from git (`git checkout v0.1.8`).
+driver. Recoverable from git (`git checkout 3268f78`).
 
 ## v0.1.7 [8]
 - Connection Status shows *"Refused (HTTP 401/403) – on the Roku set Control by

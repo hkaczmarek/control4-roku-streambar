@@ -72,8 +72,8 @@ release/                tracked .c4z of the current version
     python tools/mock_test.py                # pip install lupa
     python build.py                          # -> release/roku_streambar_combined.c4z
 
-Older versions: `git checkout v0.1.8` (receiver-only), `v0.2.2`, `v0.3.0`, then
-`python build.py`. Release builds for sale would be encrypted with Control4's
+Older versions (commit hashes; see CHANGELOG.md): `git checkout 3268f78`
+(v0.1.8, receiver-only), `f954355` (v0.2.2), then `python build.py`. Release builds for sale would be encrypted with Control4's
 DriverPackager; the files here are unencrypted dev builds.
 
 ## Known limitations

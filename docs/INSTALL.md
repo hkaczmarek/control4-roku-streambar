@@ -53,7 +53,7 @@ Do it one step at a time and keep the old drivers until the new one is proven.
 - **Add, don't update, when the driver structure changes.** Composer creates a
   driver's proxies only when the driver is *added*. Updating a receiver-only
   instance with the combined driver leaves a broken hybrid. Recovery: update back
-  to the previous version (`git checkout v0.1.8 && python build.py`), then add the
+  to the previous version (`git checkout 3268f78 && python build.py` for v0.1.8), then add the
   combined driver fresh.
 - **File names matter.** When a `.c4z` with a file name Composer already knows is
   loaded, Composer can apply it as an update to every instance of that driver. The
