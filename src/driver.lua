@@ -7,7 +7,7 @@
   repeating timer that sends keypress/VolumeUp|VolumeDown.
 ]]
 
-DRIVER_VERSION = "0.1.0"
+DRIVER_VERSION = "0.1.1"
 
 local PROXY_BINDING = 5001
 
@@ -95,7 +95,9 @@ end
 -- Device info / connection test
 ---------------------------------------------------------------------------
 local function xmlTag(body, tag)
-  return body and body:match("<" .. tag .. ">([^<]*)</" .. tag .. ">")
+  -- escape Lua pattern magic chars ("-" in "model-name" is a quantifier)
+  local t = tag:gsub("%p", "%%%0")
+  return body and body:match("<" .. t .. ">([^<]*)</" .. t .. ">")
 end
 
 local function refreshDeviceInfo()
