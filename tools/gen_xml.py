@@ -66,6 +66,7 @@ props = "\n".join([
     prop("IP Address", "STRING"),
     prop("Ramp Interval (ms)", "RANGED_INTEGER", 150, mn=80, mx=1000),
     prop("Max Ramp Time (s)", "RANGED_INTEGER", 10, mn=2, mx=30),
+    prop("Nav Repeat Interval (ms)", "RANGED_INTEGER", 200, mn=80, mx=1000),
     prop("MENU Button", "LIST", "Home", items=KEYS),
     prop("GUIDE Button", "LIST", "Home", items=KEYS),
     prop("INFO Button", "LIST", "Info", items=KEYS),
@@ -82,7 +83,7 @@ xml = f"""<devicedata>
   <model>Streambar (ECP)</model>
   <created>11/07/2026 12:00 PM</created>
   <modified>11/07/2026 12:00 PM</modified>
-  <version>20</version>
+  <version>21</version>
   <control>lua_gen</control>
   <controlmethod>ip</controlmethod>
   <driver>DriverWorks</driver>

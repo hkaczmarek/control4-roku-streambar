@@ -24,6 +24,7 @@ Internally the Roku and the app switcher feed the receiver through hidden auto-b
 | IP Address | — | Streambar IP (DHCP reservation on the active MAC) |
 | Ramp Interval (ms) | 150 | Time between repeated volume keypresses while held |
 | Max Ramp Time (s) | 10 | Safety stop if a STOP never arrives |
+| Nav Repeat Interval (ms) | 200 | Arrow repeat rate when an arrow is held (repeat starts after 500 ms without release) |
 | MENU / GUIDE / INFO / CANCEL / RECALL Button | Home / Home / Info / Back / InstantReplay | Roku key each Control4 button sends |
 | Debug Mode | Off | Prints to Lua output |
 
