@@ -6,11 +6,10 @@
   <model>Streambar (ECP)</model>
   <created>11/07/2026 12:00 PM</created>
   <modified>11/07/2026 12:00 PM</modified>
-  <version>5</version>
+  <version>6</version>
   <control>lua_gen</control>
   <controlmethod>ip</controlmethod>
   <driver>DriverWorks</driver>
-  <combo>true</combo>
   <proxies qty="1">
     <proxy proxybindingid="5001" name="Roku Streambar" primary="True">receiver</proxy>
   </proxies>

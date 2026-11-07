@@ -7,7 +7,7 @@
   repeating timer that sends keypress/VolumeUp|VolumeDown.
 ]]
 
-DRIVER_VERSION = "0.1.4"
+DRIVER_VERSION = "0.1.5"
 
 local PROXY_BINDING = 5001
 
