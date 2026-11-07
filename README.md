@@ -24,7 +24,6 @@ Internally the Roku and the app switcher feed the receiver through hidden auto-b
 | IP Address | — | Streambar IP (DHCP reservation on the active MAC) |
 | Ramp Interval (ms) | 150 | Time between repeated volume keypresses while held |
 | Max Ramp Time (s) | 10 | Safety stop if a STOP never arrives |
-| Nav Repeat Interval (ms) | 200 | Arrow repeat rate when an arrow is held (repeat starts after 500 ms without release) |
 | MENU / GUIDE / INFO / CANCEL / RECALL Button | Home / Home / Info / Back / InstantReplay | Roku key each Control4 button sends |
 | Debug Mode | Off | Prints to Lua output |
 
@@ -37,7 +36,7 @@ Actions: Test Connection, Send Volume Up/Down, Send Home, Print Installed Apps (
 
 ## Notes
 - Volume/power keys are documented by Roku for Roku TVs only; the Streambar (9102R, OS 15.3.4) accepts them.
-- `keydown`/`keyup` are ignored for volume on the Streambar, hence the timer ramp.
+- `keydown`/`keyup` are ignored for volume on the Streambar, hence the timer ramp. For arrows they work: held arrows arrive as START_*/STOP_* and map to keydown/keyup.
 - Roku OS 14.1+: keypress requires Settings > System > Advanced system settings > Control by mobile apps = Enabled. The driver shows a hint on HTTP 401/403.
 - Remove any old room programming that posts the same ECP keys (Pulse Volume, Mute toggle, Room Off PowerOff), or presses get sent twice.
 - Do not set `<combo>` in driver.xml: it stops Composer from creating the real proxies.

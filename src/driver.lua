@@ -17,7 +17,7 @@
   repeats keypress/VolumeUp|VolumeDown.
 ]]
 
-DRIVER_VERSION = "0.2.1"
+DRIVER_VERSION = "0.2.2"
 
 local RX = 5001  -- receiver proxy
 local MP = 5002  -- media_player proxy
@@ -32,9 +32,7 @@ local gRampKey = nil
 local gInFlight = false
 local gLastPostFailed = false
 local gAppTimer = nil
-local gHoldTimer = nil      -- detects a held arrow key (no END_* within HOLD_DETECT_MS)
 local gLastPowerOn = nil    -- tick of the last successful PowerOn
-local HOLD_DETECT_MS = 500
 local HOME_APP_ID = "562859" -- "Roku Dynamic Menu" = the Roku home screen
 local refreshDeviceInfo -- forward declaration
 
@@ -267,6 +265,11 @@ end
 local NAV = {
   UP = "keypress/Up", DOWN = "keypress/Down", LEFT = "keypress/Left", RIGHT = "keypress/Right",
   ENTER = "keypress/Select",
+  -- held arrows: the room sends START_*/STOP_*; the Streambar repeats on keydown
+  START_UP = "keydown/Up", START_DOWN = "keydown/Down",
+  START_LEFT = "keydown/Left", START_RIGHT = "keydown/Right",
+  STOP_UP = "keyup/Up", STOP_DOWN = "keyup/Down",
+  STOP_LEFT = "keyup/Left", STOP_RIGHT = "keyup/Right",
 
   PLAY = "keypress/Play", PAUSE = "keypress/Play", PLAYPAUSE = "keypress/Play", STOP = "keypress/Play",
   SCAN_FWD = "keypress/Fwd", SCAN_REV = "keypress/Rev",
@@ -285,9 +288,6 @@ local NAV_PROP = {
   CANCEL = "CANCEL Button", RECALL = "RECALL Button",
 }
 
--- arrow keys: pressed -> one keypress; still held after HOLD_DETECT_MS -> repeat
-local ARROWS = { UP = "Up", DOWN = "Down", LEFT = "Left", RIGHT = "Right" }
-
 -- commands the room sends that need no action (END_* handled generically below)
 local NAV_IGNORE = {
   ON = true, OFF = true, -- power is handled by the receiver proxy
@@ -295,40 +295,8 @@ local NAV_IGNORE = {
   SELECT_SOURCE = true, WATCH_BUTTON = true, LISTEN_BUTTON = true,
 }
 
-local function cancelHold()
-  if gHoldTimer then gHoldTimer:Cancel(); gHoldTimer = nil end
-end
-
-local function handleArrow(cmd)
-  local key = ARROWS[cmd]
-  if key then
-    cancelHold()
-    stopRamp("new arrow")
-    sendKey(key)
-    gHoldTimer = C4:SetTimer(HOLD_DETECT_MS, function()
-      gHoldTimer = nil
-      startRamp(key, "Nav Repeat Interval (ms)")
-    end)
-    return true
-  end
-  local startKey = cmd:match("^START_(%u+)$")
-  if startKey and ARROWS[startKey] then
-    cancelHold()
-    startRamp(ARROWS[startKey], "Nav Repeat Interval (ms)")
-    return true
-  end
-  local endKey = cmd:match("^END_(%u+)$") or cmd:match("^STOP_(%u+)$")
-  if endKey and ARROWS[endKey] then
-    cancelHold()
-    stopRamp(cmd)
-    return true
-  end
-  return false
-end
-
 local function handleNav(cmd)
   if NAV_IGNORE[cmd] then return true end
-  if handleArrow(cmd) then return true end
   if cmd:match("^END_") then return true end -- release of a non-arrow button
   local path = NAV[cmd]
   if not path and NAV_PROP[cmd] then
@@ -412,8 +380,6 @@ function ReceivedFromProxy(idBinding, strCommand, tParams)
   if strCommand == "PASSTHROUGH" then
     local inner = tParams.PASSTHROUGH_COMMAND
     if not inner then return end
-    -- No hold detection here: a mini-driver may never forward the release.
-    if ARROWS[inner] then ecpPost("keypress/" .. ARROWS[inner]) return end
     if not handleNav(inner) and RX_CMDS[inner] then RX_CMDS[inner](tParams) end
     return
   end
@@ -487,6 +453,5 @@ end
 
 function OnDriverDestroyed()
   stopRamp("driver destroyed")
-  cancelHold()
   if gAppTimer then gAppTimer:Cancel() end
 end

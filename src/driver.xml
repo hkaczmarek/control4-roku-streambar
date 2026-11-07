@@ -6,7 +6,7 @@
   <model>Streambar (ECP)</model>
   <created>11/07/2026 12:00 PM</created>
   <modified>11/07/2026 12:00 PM</modified>
-  <version>21</version>
+  <version>22</version>
   <control>lua_gen</control>
   <controlmethod>ip</controlmethod>
   <driver>DriverWorks</driver>
@@ -638,14 +638,6 @@
         <minimum>2</minimum>
         <maximum>30</maximum>
         <default>10</default>
-      </property>
-      <property>
-        <name>Nav Repeat Interval (ms)</name>
-        <type>RANGED_INTEGER</type>
-        <readonly>false</readonly>
-        <minimum>80</minimum>
-        <maximum>1000</maximum>
-        <default>200</default>
       </property>
       <property>
         <name>MENU Button</name>

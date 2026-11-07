@@ -56,8 +56,8 @@ tick(2)
 ReceivedFromProxy(5001, "MUTE_TOGGLE", {})
 -- tap: hold timer cancelled by END_UP
 ReceivedFromProxy(5002, "UP", {}); ReceivedFromProxy(5002, "END_UP", {}); tick(2)
--- hold: no END within 500 ms -> repeat until END_DOWN
-ReceivedFromProxy(5002, "DOWN", {}); tick(1); tick(3); ReceivedFromProxy(5002, "END_DOWN", {}); tick(2)
+-- hold: room sends DOWN, START_DOWN ... STOP_DOWN
+ReceivedFromProxy(5002, "DOWN", {}); ReceivedFromProxy(5002, "START_DOWN", {}); ReceivedFromProxy(5002, "STOP_DOWN", {})
 ReceivedFromProxy(5002, "END_MENU", {}); ReceivedFromProxy(5002, "END_CANCEL", {})
 ReceivedFromProxy(5002, "ENTER", {}); ReceivedFromProxy(5002, "MENU", {}); ReceivedFromProxy(5002, "GUIDE", {})
 ReceivedFromProxy(5002, "CANCEL", {}); ReceivedFromProxy(5002, "RECALL", {}); ReceivedFromProxy(5002, "PLAY", {})
