@@ -1,51 +1,83 @@
 # control4-roku-streambar
 
-One Control4 driver for the Roku Streambar (soundbar + Roku player) over Roku ECP (HTTP, port 8060).
-Replaces the stock Roku driver plus a separate volume driver. Own code; no Snap One code.
+A single Control4 driver for the **Roku Streambar** (soundbar + Roku player in one
+box), controlled over Roku's External Control Protocol (ECP, HTTP port 8060).
+It replaces the stock Roku driver plus room programming. Own code by Final Touch AV;
+no Snap One code.
 
-## Proxies
-| Binding | Proxy | Role |
-|---|---|---|
-| 5001 | receiver "Roku Streambar" | Power (TV follows via HDMI-CEC), volume with hold-to-ramp, mute; room audio end-point; HDMI Out to the TV |
-| 5002 | media_player "Roku" | The Roku UI as a source; navigation and transport keys |
-| 5003 | avswitch "Roku App Switcher" | Hidden; App 1-25 inputs (RF_MINI_APP) for universal app mini-drivers |
+**Current version: 0.3.0** — package: [`release/roku_streambar_combined.c4z`](release/roku_streambar_combined.c4z)
 
-Internally the Roku and the app switcher feed the receiver through hidden auto-bound connections.
+## Why
+Control4 has no Streambar driver. The stock Roku driver controls the Roku UI but
+isn't a volume device, and its held-volume ramp uses `keydown`/`keyup`, which the
+Streambar ignores, so holding volume did nothing.
+See [docs/PRIOR-ART.md](docs/PRIOR-ART.md).
 
-## Composer hookup
-- Streambar **HDMI Out** -> TV HDMI input
-- Room Audio End-Point / Audio Volume (and video's audio/volume) -> Streambar
-- App mini-drivers (Netflix, Hulu, ...) bind to the App Switcher's App 1-25 inputs
-- Room source for "Watch": the **Roku** media player proxy
+## What it does
+- **One driver, three proxies**: *Roku Streambar* (receiver: power, volume, mute,
+  room audio end-point, HDMI out to the TV), *Roku* (media player: the source,
+  navigation/transport), *Roku App Switcher* (hidden: app mini-drivers).
+- **Volume**: tap = one step; hold = smooth ramp (repeated `keypress`, 150 ms,
+  with in-flight skipping and a 10 s safety stop); mute toggle.
+- **Power**: PowerOn/PowerOff on the Streambar; the TV follows via HDMI-CEC.
+  Optional Home on power on/off. Duplicate ON commands from the room are debounced.
+- **Navigation**: arrows (held arrows scroll natively via `keydown`/`keyup`),
+  OK, Back, Home, Play, Rew/FF, Instant Replay, Options, numbers; MENU, GUIDE,
+  INFO, CANCEL, RECALL, PVR, STAR, POUND are configurable.
+- **Apps**: universal app mini-drivers (Netflix, Hulu, …) launch their Roku app;
+  Passthrough Mode like the stock driver.
+- **Discovery**: SSDP finds every Roku; the Streambar is remembered by serial and
+  followed across IP changes; optional static Roku IP.
+- **Status**: Connection Status, Device (model + OS), Current App (polled).
 
 ## Properties
 | Property | Default | Notes |
 |---|---|---|
 | Roku Player | — | Read-only: the selected Roku, its serial and current IP |
-| Roku Player Selector | — | Rokus found via SSDP (`roku:ecp`); pick one. Remembered by serial, so IP changes are followed. A single Streambar on the network is selected automatically |
+| Roku Player Selector | — | Rokus found via SSDP; pick one. A single Streambar is selected automatically |
 | Roku IP | — | Optional static IP; overrides discovery |
 | Polling Time | 15 s | How often Current App is refreshed |
-| On Power On / On Power Off | Home / Home | Send Home after waking / before standby (closes the running app) |
-| Passthrough Mode | Off | Off: after an app mini-driver launches its app, the room switches to the Roku source. On: the mini-driver stays selected and forwards keys |
-| Ramp Interval (ms) | 150 | Time between repeated volume keypresses while held |
-| Max Ramp Time (s) | 10 | Safety stop if a STOP never arrives |
-| MENU / GUIDE / INFO / CANCEL / RECALL / PVR / STAR / POUND Button | Home / Home / Info / Back / InstantReplay / Back / Do Nothing / Do Nothing | Roku key each Control4 button sends |
-| Debug Mode | Off | Prints to Lua output |
+| On Power On / On Power Off | Home / Home | Send Home after waking / before standby |
+| Passthrough Mode | Off | Off: after a mini-driver launches its app, the room switches to the Roku source |
+| Ramp Interval (ms) | 150 | Volume repeat rate while held |
+| Max Ramp Time (s) | 10 | Safety stop if STOP never arrives |
+| MENU / GUIDE / INFO / CANCEL / RECALL / PVR / STAR / POUND Button | Home / Home / Info / Back / InstantReplay / Back / Do Nothing / Do Nothing | Roku key each button sends |
+| Debug Mode | Off | Prints to the Lua tab |
 
-Actions: Test Connection, Send Volume Up/Down, Send Home, Print Installed Apps (Roku app IDs), Rescan for Rokus.
+Actions: Test Connection, Send Volume Up/Down, Send Home, Print Installed Apps,
+Rescan for Rokus.
 
-## Build / test
-    python build.py                          # -> build/roku_streambar_combined.c4z, copied to release/ (tracked)
-    python tools/gen_xml.py src/driver.xml   # regenerate driver.xml (connections/properties)
-    python tools/mock_test.py                # runs driver.lua against a mocked C4 API (pip install lupa)
+## Docs
+- [docs/INSTALL.md](docs/INSTALL.md) — Composer setup, migrating from the stock
+  driver, pitfalls (add vs. update, file names, `<combo>`)
+- [docs/DESIGN.md](docs/DESIGN.md) — proxies, connection table, command mapping,
+  discovery, provenance
+- [docs/ROKU-ECP-NOTES.md](docs/ROKU-ECP-NOTES.md) — what the Streambar does and
+  doesn't accept over ECP, device-info fields, app IDs, SSDP, observed room commands
+- [docs/TESTING.md](docs/TESTING.md) — mock test and the bench test log
+- [CHANGELOG.md](CHANGELOG.md)
 
-## Notes
-- Volume/power keys are documented by Roku for Roku TVs only; the Streambar (9102R, OS 15.3.4) accepts them.
-- `keydown`/`keyup` are ignored for volume on the Streambar, hence the timer ramp. For arrows they work: held arrows arrive as START_*/STOP_* and map to keydown/keyup.
-- Roku OS 14.1+: keypress requires Settings > System > Advanced system settings > Control by mobile apps = Enabled. The driver shows a hint on HTTP 401/403.
-- Remove any old room programming that posts the same ECP keys (Pulse Volume, Mute toggle, Room Off PowerOff), or presses get sent twice.
-- Do not set `<combo>` in driver.xml: it stops Composer from creating the real proxies.
+## Repository layout
+```
+src/driver.xml          generated by tools/gen_xml.py — don't edit by hand
+src/driver.lua          driver code
+tools/gen_xml.py        generates driver.xml (proxies, connections, properties)
+tools/mock_test.py      runs driver.lua against a mocked Control4 API (needs lupa)
+build.py                zips src/ into build/ and copies to release/
+release/                tracked .c4z of the current version
+```
 
-## Not yet
-- Navigator app browsing (media_service), now-playing metadata
-- Discrete mute and volume feedback (ECP has no volume/mute state)
+## Build
+    python tools/gen_xml.py src/driver.xml   # only if XML-level things changed
+    python tools/mock_test.py                # pip install lupa
+    python build.py                          # -> release/roku_streambar_combined.c4z
+
+Older versions: `git checkout v0.1.8` (receiver-only), `v0.2.2`, `v0.3.0`, then
+`python build.py`. Release builds for sale would be encrypted with Control4's
+DriverPackager; the files here are unencrypted dev builds.
+
+## Known limitations
+- No volume level or mute state feedback (ECP has neither); discrete mute maps to
+  toggle.
+- No input switching on the Streambar itself (ECP input keys are Roku TV only).
+- No Navigator app browsing (stock `media_service` list) or now-playing metadata.
