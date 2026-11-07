@@ -1,0 +1,163 @@
+<devicedata>
+  <copyright>Copyright 2026 Final Touch AV. All rights reserved.</copyright>
+  <creator>Final Touch AV</creator>
+  <manufacturer>Roku</manufacturer>
+  <name>Roku Streambar</name>
+  <model>Streambar (ECP)</model>
+  <created>11/07/2026 12:00 PM</created>
+  <modified>11/07/2026 12:00 PM</modified>
+  <version>1</version>
+  <control>lua_gen</control>
+  <controlmethod>ip</controlmethod>
+  <driver>DriverWorks</driver>
+  <combo>true</combo>
+  <proxies qty="1">
+    <proxy proxybindingid="5001" name="Roku Streambar">receiver</proxy>
+  </proxies>
+  <capabilities>
+    <has_discrete_volume_control>False</has_discrete_volume_control>
+    <has_up_down_volume_control>True</has_up_down_volume_control>
+    <has_discrete_mute_control>False</has_discrete_mute_control>
+    <has_toggle_mute_control>True</has_toggle_mute_control>
+    <has_discrete_input_select>False</has_discrete_input_select>
+    <has_tone_control>False</has_tone_control>
+    <has_surround_modes>False</has_surround_modes>
+  </capabilities>
+  <connections>
+    <connection>
+      <id>5001</id>
+      <facing>6</facing>
+      <connectionname>Receiver</connectionname>
+      <type>2</type>
+      <consumer>False</consumer>
+      <audiosource>False</audiosource>
+      <videosource>False</videosource>
+      <linelevel>False</linelevel>
+      <classes>
+        <class><classname>RECEIVER</classname></class>
+      </classes>
+    </connection>
+    <connection>
+      <id>3000</id>
+      <facing>0</facing>
+      <connectionname>Internal Roku</connectionname>
+      <type>6</type>
+      <consumer>True</consumer>
+      <audiosource>False</audiosource>
+      <videosource>False</videosource>
+      <linelevel>True</linelevel>
+      <classes>
+        <class><classname>HDMI</classname></class>
+      </classes>
+    </connection>
+    <connection>
+      <id>3001</id>
+      <facing>0</facing>
+      <connectionname>HDMI ARC (TV)</connectionname>
+      <type>6</type>
+      <consumer>True</consumer>
+      <audiosource>False</audiosource>
+      <videosource>False</videosource>
+      <linelevel>True</linelevel>
+      <classes>
+        <class><classname>HDMI</classname></class>
+      </classes>
+    </connection>
+    <connection>
+      <id>3002</id>
+      <facing>0</facing>
+      <connectionname>Optical In</connectionname>
+      <type>6</type>
+      <consumer>True</consumer>
+      <audiosource>False</audiosource>
+      <videosource>False</videosource>
+      <linelevel>True</linelevel>
+      <classes>
+        <class><classname>DIGITAL_OPTICAL</classname></class>
+      </classes>
+    </connection>
+    <connection>
+      <id>7000</id>
+      <facing>6</facing>
+      <connectionname>Audio End-Point</connectionname>
+      <type>7</type>
+      <consumer>False</consumer>
+      <audiosource>True</audiosource>
+      <videosource>False</videosource>
+      <linelevel>True</linelevel>
+      <classes>
+        <class><classname>AUDIO_SELECTION</classname></class>
+        <class><classname>AUDIO_VOLUME</classname></class>
+      </classes>
+    </connection>
+  </connections>
+  <config>
+    <script file="driver.lua" jit="1"></script>
+    <properties>
+      <property>
+        <name>Driver Version</name>
+        <type>STRING</type>
+        <readonly>true</readonly>
+        <default></default>
+      </property>
+      <property>
+        <name>Connection Status</name>
+        <type>STRING</type>
+        <readonly>true</readonly>
+        <default>Not configured</default>
+      </property>
+      <property>
+        <name>Device</name>
+        <type>STRING</type>
+        <readonly>true</readonly>
+        <default></default>
+      </property>
+      <property>
+        <name>IP Address</name>
+        <type>STRING</type>
+        <readonly>false</readonly>
+        <default></default>
+      </property>
+      <property>
+        <name>Ramp Interval (ms)</name>
+        <type>RANGED_INTEGER</type>
+        <readonly>false</readonly>
+        <minimum>80</minimum>
+        <maximum>1000</maximum>
+        <default>150</default>
+      </property>
+      <property>
+        <name>Max Ramp Time (s)</name>
+        <type>RANGED_INTEGER</type>
+        <readonly>false</readonly>
+        <minimum>2</minimum>
+        <maximum>30</maximum>
+        <default>10</default>
+      </property>
+      <property>
+        <name>Debug Mode</name>
+        <type>LIST</type>
+        <readonly>false</readonly>
+        <items>
+          <item>Off</item>
+          <item>On</item>
+        </items>
+        <default>Off</default>
+      </property>
+    </properties>
+    <actions>
+      <action>
+        <name>Test Connection</name>
+        <command>TestConnection</command>
+      </action>
+      <action>
+        <name>Send Volume Up</name>
+        <command>TestVolUp</command>
+      </action>
+      <action>
+        <name>Send Volume Down</name>
+        <command>TestVolDown</command>
+      </action>
+    </actions>
+  </config>
+</devicedata>
