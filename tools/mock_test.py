@@ -35,7 +35,7 @@ C4 = {
   SendToDevice = function(_, id, cmd, p) table.insert(posts, "SEND "..id.." "..cmd) end,
 }
 ''')
-lua.execute(open('str(pathlib.Path(__file__).resolve().parent.parent / 'src' / 'driver.lua')').read())
+lua.execute(open(pathlib.Path(__file__).resolve().parent.parent / 'src' / 'driver.lua').read())
 lua.execute(r'''
 OnDriverLateInit()
 local function tick(n) for i=1,n do for _, t in ipairs(timers) do if not t.cancelled then t.f(t) end end end end
