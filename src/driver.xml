@@ -6,22 +6,29 @@
   <model>Streambar (ECP)</model>
   <created>11/07/2026 12:00 PM</created>
   <modified>11/07/2026 12:00 PM</modified>
-  <version>3</version>
+  <version>4</version>
   <control>lua_gen</control>
   <controlmethod>ip</controlmethod>
   <driver>DriverWorks</driver>
   <combo>true</combo>
   <proxies qty="1">
-    <proxy proxybindingid="5001" name="Roku Streambar">receiver</proxy>
+    <proxy proxybindingid="5001" name="Roku Streambar" primary="True">receiver</proxy>
   </proxies>
   <capabilities>
+    <audio_consumer_count>3</audio_consumer_count>
+    <audio_provider_count>1</audio_provider_count>
+    <video_consumer_count>0</video_consumer_count>
+    <video_provider_count>0</video_provider_count>
+    <can_switch>True</can_switch>
+    <can_switch_separately>False</can_switch_separately>
+    <can_upclass>False</can_upclass>
+    <can_downclass>False</can_downclass>
     <has_discrete_volume_control>False</has_discrete_volume_control>
     <has_up_down_volume_control>True</has_up_down_volume_control>
     <has_discrete_mute_control>False</has_discrete_mute_control>
     <has_toggle_mute_control>True</has_toggle_mute_control>
     <has_discrete_input_select>False</has_discrete_input_select>
-    <has_tone_control>False</has_tone_control>
-    <has_surround_modes>False</has_surround_modes>
+    <has_discrete_surround_mode_select>False</has_discrete_surround_mode_select>
   </capabilities>
   <connections>
     <connection>
@@ -90,6 +97,18 @@
       <linelevel>True</linelevel>
       <classes>
         <class><classname>AUDIO_SELECTION</classname></class>
+      </classes>
+    </connection>
+    <connection>
+      <id>7001</id>
+      <facing>6</facing>
+      <connectionname>Audio End-Point</connectionname>
+      <type>7</type>
+      <consumer>False</consumer>
+      <audiosource>False</audiosource>
+      <videosource>False</videosource>
+      <linelevel>True</linelevel>
+      <classes>
         <class><classname>AUDIO_VOLUME</classname></class>
       </classes>
     </connection>
