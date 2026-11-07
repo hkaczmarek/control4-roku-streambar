@@ -7,7 +7,7 @@
   repeating timer that sends keypress/VolumeUp|VolumeDown.
 ]]
 
-DRIVER_VERSION = "0.1.7"
+DRIVER_VERSION = "0.1.8"
 
 local PROXY_BINDING = 5001
 
@@ -127,9 +127,6 @@ refreshDeviceInfo = function()
     local power = xmlTag(body, "power-mode") or "?"
     local label = (name ~= "" and name ~= model) and (name .. " " .. model) or model
     C4:UpdateProperty("Device", string.format("%s (OS %s)", label, sw))
-    local tvPower = xmlTag(body, "supports-tv-power-control") or "n/a"
-    local volCtl  = xmlTag(body, "supports-audio-volume-control") or "n/a"
-    C4:UpdateProperty("Roku Capabilities", "TV power control: " .. tvPower .. ", volume control: " .. volCtl)
     setStatus("Online - power-mode " .. power)
   end)
 end
