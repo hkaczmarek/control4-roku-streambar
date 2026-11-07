@@ -7,7 +7,7 @@
   repeating timer that sends keypress/VolumeUp|VolumeDown.
 ]]
 
-DRIVER_VERSION = "0.1.5"
+DRIVER_VERSION = "0.1.6"
 
 local PROXY_BINDING = 5001
 
@@ -131,7 +131,8 @@ end
 local function startRamp(key)
   stopRamp("restart")
   gRampKey = key
-  sendKey(key) -- first step immediately
+  -- No immediate keypress: the room sends PULSE_VOL_* before START_VOL_*,
+  -- so the first step has already gone out. Ramp starts on the first tick.
 
   local interval = tonumber(Properties["Ramp Interval (ms)"]) or 150
   local maxMs = (tonumber(Properties["Max Ramp Time (s)"]) or 10) * 1000
@@ -174,6 +175,13 @@ local PROXY_CMDS = {
   MUTE_OFF    = function() dbg("MUTE_OFF -> toggle"); sendKey("VolumeMute") end,
 
   SET_INPUT = function(p) dbg("SET_INPUT " .. tostring(p and p.INPUT) .. " (no-op)") end,
+
+  -- Sent by the room; nothing to do on the Streambar
+  END_VOL_UP        = function() end,
+  END_VOL_DOWN      = function() end,
+  CONNECT_OUTPUT    = function() end,
+  DISCONNECT_OUTPUT = function() end,
+  GET_IS_MUTED      = function() end, -- ECP can't report mute state
 }
 
 function ReceivedFromProxy(idBinding, strCommand, tParams)
