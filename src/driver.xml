@@ -6,7 +6,7 @@
   <model>Streambar (ECP)</model>
   <created>11/07/2026 12:00 PM</created>
   <modified>11/07/2026 12:00 PM</modified>
-  <version>4</version>
+  <version>5</version>
   <control>lua_gen</control>
   <controlmethod>ip</controlmethod>
   <driver>DriverWorks</driver>
@@ -44,7 +44,7 @@
         <class><classname>RECEIVER</classname></class>
       </classes>
     </connection>
-    <connection>
+    <connection proxybindingid="5001">
       <id>3000</id>
       <facing>0</facing>
       <connectionname>Internal Roku</connectionname>
@@ -60,7 +60,7 @@
         <class><classname>DIGITAL_OPTICAL</classname></class>
       </classes>
     </connection>
-    <connection>
+    <connection proxybindingid="5001">
       <id>3001</id>
       <facing>0</facing>
       <connectionname>HDMI ARC (TV)</connectionname>
@@ -73,7 +73,7 @@
         <class><classname>HDMI</classname></class>
       </classes>
     </connection>
-    <connection>
+    <connection proxybindingid="5001">
       <id>3002</id>
       <facing>0</facing>
       <connectionname>Optical In</connectionname>
@@ -86,7 +86,7 @@
         <class><classname>DIGITAL_OPTICAL</classname></class>
       </classes>
     </connection>
-    <connection>
+    <connection proxybindingid="5001">
       <id>7000</id>
       <facing>6</facing>
       <connectionname>Audio End-Point</connectionname>
@@ -97,18 +97,6 @@
       <linelevel>True</linelevel>
       <classes>
         <class><classname>AUDIO_SELECTION</classname></class>
-      </classes>
-    </connection>
-    <connection>
-      <id>7001</id>
-      <facing>6</facing>
-      <connectionname>Audio End-Point</connectionname>
-      <type>7</type>
-      <consumer>False</consumer>
-      <audiosource>False</audiosource>
-      <videosource>False</videosource>
-      <linelevel>True</linelevel>
-      <classes>
         <class><classname>AUDIO_VOLUME</classname></class>
       </classes>
     </connection>
